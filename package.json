@@ -1,0 +1,25 @@
+{
+  "name": "nftcontract",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.5",
+    "@nomiclabs/hardhat-waffle": "^2.0.3",
+    "chai": "^4.3.6",
+    "ethereum-waffle": "^3.4.0",
+    "ethers": "^5.5.4",
+    "hardhat": "^2.9.1",
+    "keccak256": "^1.0.6",
+    "merkletreejs": "^0.2.27"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.5.0",
+    "sol-merger": "^4.0.0"
+  }
+}
