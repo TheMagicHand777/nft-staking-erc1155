@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract NFTContract is ERC1155, Ownable, ReentrancyGuard{
+contract NFTContract is ERC1155, Ownable, ReentrancyGuard {
     
     using Counters for Counters.Counter;
     using SafeMath for uint256;
@@ -59,6 +59,10 @@ contract NFTContract is ERC1155, Ownable, ReentrancyGuard{
         _mint(msg.sender, _tokenIdTracker.current(), 1, "");
         _tokenIdTracker.increment();
         _mint(msg.sender, _tokenIdTracker.current(), 1, "");
+    }
+
+    function setBaseUri(string memory baseUri) public onlyOwner {
+        _baseUri = baseUri;
     }
 
     function uri( uint256 _id) public view override returns (string memory) {
