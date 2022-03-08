@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
+import "hardhat/console.sol";
 contract NFTContract is ERC1155, Ownable, ReentrancyGuard {
     
     using Counters for Counters.Counter;
@@ -31,6 +32,10 @@ contract NFTContract is ERC1155, Ownable, ReentrancyGuard {
      * @dev validates merkleProof
      */
     modifier isValidMerkleProof(bytes32[] calldata merkleProof, bytes32 root) {
+        console.logBytes32(merkleProof[0]);    
+        console.logBytes32(merkleProof[1]);    
+        console.logBytes32(root);
+        console.logBytes32(keccak256(abi.encodePacked(msg.sender)));        
         require(
             MerkleProof.verify(
                 merkleProof,
@@ -109,6 +114,8 @@ contract NFTContract is ERC1155, Ownable, ReentrancyGuard {
 
 
     function setWhitelistMerkleRoot(bytes32 merkleRoot) external onlyOwner {
+        console.log("Merkle Root is");
+        console.logBytes32(merkleRoot);
         whitelistMerkleRoot = merkleRoot;
     }
 

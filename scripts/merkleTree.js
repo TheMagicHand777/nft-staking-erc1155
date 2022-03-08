@@ -17,3 +17,4 @@ const valid = merkleTree.verify(proof, hashedAddress, root);
 console.log(proof);
 console.log(root);
 console.log(valid);
+console.log(hashedAddress);
