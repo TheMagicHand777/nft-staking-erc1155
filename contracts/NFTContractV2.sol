@@ -79,10 +79,9 @@ contract NFTContract is ERC1155, Ownable, ReentrancyGuard {
         _mintBatch(msg.sender, ids, amounts, "");
     }
 
-    function publicSale(uint256 mintCount, bytes32[] calldata merkleProof)
+    function publicSale(uint256 mintCount)
         external
         payable
-        isValidMerkleProof(merkleProof, whitelistMerkleRoot)
         isCorrectPayment(_publicSalePrice, mintCount)
     {
         require(mintCount <= PUBLIC_SALE_COUNT, "Can mint up to 5 NFTs");
