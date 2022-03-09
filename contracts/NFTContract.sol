@@ -66,15 +66,16 @@ contract NFTContract is ERC1155, Ownable, ReentrancyGuard {
         _mint(msg.sender, _tokenIdTracker.current(), 1, "");
     }
 
-    function setBaseUri(string memory baseUri) public onlyOwner {
+    function setBaseUri(string memory baseUri) external onlyOwner {
         _baseUri = baseUri;
     }
 
     function uri( uint256 _id) public view override returns (string memory) {
         return string(abi.encodePacked(_baseUri, Strings.toString(_id)));
     }
+
     //mint nfts (only owner of the smart contract can mint nfts)
-    function mint(address account, uint256 id, uint256 amount) public onlyOwner {
+    function mint(address account, uint256 id, uint256 amount) external onlyOwner {
         _mint(account, id, amount, "");
     }
 
@@ -119,7 +120,7 @@ contract NFTContract is ERC1155, Ownable, ReentrancyGuard {
         whitelistMerkleRoot = merkleRoot;
     }
 
-    function setPrivateSalePrice(uint256 value) public onlyOwner {
+    function setPrivateSalePrice(uint256 value) external onlyOwner {
         _privateSalePrice = value;
     }
 
@@ -127,7 +128,7 @@ contract NFTContract is ERC1155, Ownable, ReentrancyGuard {
         return _privateSalePrice;
     }
 
-    function setPublicSalePrice(uint256 value) public onlyOwner {
+    function setPublicSalePrice(uint256 value) external onlyOwner {
         _publicSalePrice = value;
     }
 
