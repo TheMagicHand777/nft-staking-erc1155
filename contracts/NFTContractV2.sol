@@ -59,13 +59,14 @@ contract NFTContract is ERC1155, Ownable, ReentrancyGuard {
         _setURI(uri);
     }
 
-    // uint256[] ids;
-    // uint256[] amounts;
-    // function testMint() public onlyOwner {        
-    //     ids = [1, 2];
-    //     amounts = [1, 1];
-    //     _mintBatch(msg.sender, ids, amounts, "");
-    // }
+    uint256[] ids;
+    uint256[] amounts;
+    function testMint() public onlyOwner {        
+        ids = [0, 1];
+        amounts = [1, 1];
+        _mintBatch(msg.sender, ids, amounts, "");
+        currentSupply = currentSupply + 2;
+    }
 
     function preSale(uint256 mintCount, bytes32[] calldata merkleProof)
         external
