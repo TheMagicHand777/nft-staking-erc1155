@@ -1,13 +1,13 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract NFTContract is ERC1155, Ownable, ReentrancyGuard {
+contract NFTContract is ERC1155Supply, Ownable, ReentrancyGuard {
     using SafeMath for uint256;
 
     uint256 TOKEN_SIZE = 10;
@@ -61,6 +61,7 @@ contract NFTContract is ERC1155, Ownable, ReentrancyGuard {
 
     uint256[] ids;
     uint256[] amounts;
+
     function testMint() public onlyOwner {        
         ids = [0, 1];
         amounts = [1, 1];
