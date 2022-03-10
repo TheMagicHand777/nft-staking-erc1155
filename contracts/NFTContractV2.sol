@@ -59,6 +59,14 @@ contract NFTContract is ERC1155, Ownable, ReentrancyGuard {
         _setURI(uri);
     }
 
+    // uint256[] ids;
+    // uint256[] amounts;
+    // function testMint() public onlyOwner {        
+    //     ids = [1, 2];
+    //     amounts = [1, 1];
+    //     _mintBatch(msg.sender, ids, amounts, "");
+    // }
+
     function preSale(uint256 mintCount, bytes32[] calldata merkleProof)
         external
         payable
@@ -67,16 +75,12 @@ contract NFTContract is ERC1155, Ownable, ReentrancyGuard {
     {
         require(mintCount <= PRESALE_COUNT, "Can mint up to 5 NFTs");
         require(currentSupply + mintCount <= TOTAL_TOKEN_COOUNT, "Overflow Max Supply");      
-        uint256[] memory ids = new uint256[](mintCount);
-        uint256[] memory amounts = new uint256[](mintCount);
-        uint256 id = 0;
         for(uint i = 0; i < mintCount; i++) {
-            id  = currentSupply % TOKEN_SIZE;
-            ids[i] = id;        
-            amounts[i] = 1;
-            currentSupply = currentSupply + 1;        
+            uint256 id  = currentSupply % TOKEN_SIZE; 
+            _mint(msg.sender, id, 1, "");
+            currentSupply = currentSupply + 1;
         }
-        _mintBatch(msg.sender, ids, amounts, "");
+        
     }
 
     function publicSale(uint256 mintCount)
@@ -86,16 +90,11 @@ contract NFTContract is ERC1155, Ownable, ReentrancyGuard {
     {
         require(mintCount <= PUBLIC_SALE_COUNT, "Can mint up to 5 NFTs");
         require(currentSupply + mintCount <= TOTAL_TOKEN_COOUNT, "Overflow Max Supply");
-        uint256[] memory ids = new uint256[](mintCount);
-        uint256[] memory amounts = new uint256[](mintCount);
-        uint256 id = 0;
         for(uint i = 0; i < mintCount; i++) {
-            id  = currentSupply % TOKEN_SIZE;
-            ids[i] = id;        
-            amounts[i] = 1;
+            uint256 id  = currentSupply % TOKEN_SIZE;
+            _mint(msg.sender, id, 1, "");
             currentSupply = currentSupply + 1;        
         }
-        _mintBatch(msg.sender, ids, amounts, "");
     }
 
 
