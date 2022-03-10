@@ -8,12 +8,13 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 contract NftStaking is Ownable, ReentrancyGuard {
   using SafeMath for uint256;
+
   uint256 public constant REWT_ISSUE_CNT_PER_SECOND = 27; // rewt token issue count per second, 10,000 per hour
   uint256 public constant LEVELUP_PERCENT = 10; // level up nft percent per 30 days
   uint256 public constant LEVELUP_DEADLINE_BY_SECONDS = 30; // level up deadline by seconds
   struct NftNFTStakerInfo {
     uint256 rewardValue;
-    uint256 lastStakedTime;
+    uint256 claimRewardTime;
     uint256 nftRewardPoint;
   }
 
@@ -21,11 +22,7 @@ contract NftStaking is Ownable, ReentrancyGuard {
   mapping(address => uint256[]) private stakerToNftTokenIds;  //staked token ids of address
   //address=>id=>amount
   mapping(address => mapping(uint256=>uint256)) private stakerToNftTokens;  //staked tokens count of address
-
-  // mapping(uint256 => address) private nftTokenIdToStaker;
-  // mapping(uint256 => uint256) private nftStakedTimeByTokenId;
-  // mapping(uint256 => uint256) private nftRewardPoint;
-  mapping(uint256 => NftNFTStakerInfo) private nftTokenIdToStakerInfo;
+  mapping(address => NftNFTStakerInfo) private nftStakerInfo;
 
 
   address private admin;
@@ -40,7 +37,7 @@ contract NftStaking is Ownable, ReentrancyGuard {
     rewtTokenInterface = ERC20(pRewTTokenAddress);
     nftNFTInterface = ERC1155Supply(pNftNFTAddress);
   }
-  
+
   function getNftTokenidByStaker(address pStaker) public view returns (uint256[] memory) {
     return stakerToNftTokenIds[pStaker];
   }
@@ -57,69 +54,80 @@ contract NftStaking is Ownable, ReentrancyGuard {
     rewtTokenAddress = pTokenAddress;
     rewtTokenInterface = ERC20(rewtTokenAddress);
   }
+
   function setNftNFTAddress(address pNFTAddress) public onlyOwner {
     require(pNFTAddress != address(0), "The NFT address should not be address 0x0.");
     nftNFTAddress = pNFTAddress;
     nftNFTInterface = ERC1155Supply(nftNFTAddress);
   }
+
   function stake(uint256 tokenId) external nonReentrant {
     require(nftNFTInterface.balanceOf(msg.sender, tokenId) != 0, "This NFT is not yours.");
     // require(nftTokenIdToStaker[tokenId] == address(0), "This NFT is already staked.");
     nftNFTInterface.safeTransferFrom(msg.sender, address(this), tokenId, 1, "");
     _updateRewardOfStakers();
 
-    stakerToNftTokenIds[msg.sender].push(tokenId);
     stakerToNftTokens[msg.sender][tokenId] += 1; 
-    nftStakedTimeByTokenId[tokenId] = block.timestamp;
-    // nftTokenIdToStaker[tokenId] = msg.sender;
-    nftRewardPointByTokenId[tokenId] = 1;
-    NftNFTStakerInfo memory temp;
-    temp.reward = 0;
-    nftTokenIdToStakerInfo[tokenId] = temp;
+
+    nftStakerInfo[msg.sender].claimRewardTime = block.timestamp;
+    nftStakerInfo[msg.sender].nftRewardPoint += 1;
+    addStaker(msg.sender);    
+  }
+
+  function unstake(uint256 tokenId) external nonReentrant {
+    require(stakerToNftTokens[msg.sender][tokenId] >= 1, "Not staked by you.");
+    nftNFTInterface.safeTransferFrom(address(this), msg.sender, tokenId, 1, "");
+    _updateRewardOfStakers();
+
+    rewtTokenInterface.transferFrom(address(this), msg.sender, nftStakerInfo[msg.sender].rewardValue);
+    stakerToNftTokens[msg.sender][tokenId] -= 1;
+
+    //
+    if(checkNoStakingNFT(msg.sender) == true) {
+      removeStaker(msg.sender);
+    }
+  }
+
+  function checkNoStakingNFT(address unstaker) private view returns(bool) {
+    uint[] memory tokenIds = stakerToNftTokenIds[unstaker];
+    uint256 tokenCounts = 0;
+    for(uint i = 0; i < tokenIds.length; i++) {
+      tokenCounts += stakerToNftTokens[unstaker][tokenIds[i]];
+    }
+    if(tokenCounts > 0) {
+      return false; //there is staking NFTs
+    }
+    return true; //there is no NFTs
+  }
+
+  function removeStaker(address unstaker) private {
+    for(uint8 i = 0; i < stakers.length; i++) {
+      if(stakers[i] == unstaker){
+        stakers[i] == stakers[stakers.length - 1];
+        stakers.pop();
+        return;
+      }
+    }
+  }
+
+  function addStaker(address staker) private {
     uint256 j = 0;
     for (uint256 i = 0; i < stakers.length; i++) {
-      if (stakers[i] == msg.sender)
+      if (stakers[i] == staker)
         break;
       else
         j++;
     }
-    if (stakers.length == j) stakers.push(msg.sender);
+    if (stakers.length == j) stakers.push(staker);
   }
-  function unstake(uint256 pTokenId) external nonReentrant {
-    require(nftTokenIdToStaker[pTokenId] == msg.sender, "Not staked by you.");
-    nftNFTInterface.transferFrom(address(this), msg.sender, pTokenId);
-    _updateRewardOfStakers();
-    rewtTokenInterface.transferFrom(address(this), msg.sender, nftTokenIdToStakerInfo[pTokenId].reward);
-    for (uint256 i=0; i<stakerToNftTokenIds[msg.sender].length; i++) {
-      uint256 tokenId = stakerToNftTokenIds[msg.sender][i];
-      if (tokenId == pTokenId) {
-        stakerToNftTokenIds[msg.sender][i] = stakerToNftTokenIds[msg.sender][getStakedCountByStaker(msg.sender)-1];
-        stakerToNftTokenIds[msg.sender].pop();
-        break;
-      }
-    }
-    nftTokenIdToStaker[pTokenId] = address(0);
-  }
-  function _updateRewardOfStakers() internal {
-    uint256 stakedNftNFTCnt = 0;
-    for (uint256 i=0; i<stakers.length; i++) {
-      for (uint256 j=0; j<stakerToNftTokenIds[stakers[i]].length; j++) {
-        stakedNftNFTCnt++;
-      }
-    }
+
+
+  function _updateRewardOfStakers() private {
     for (uint256 i=0; i<stakers.length; i++) {
       address staker = stakers[i];
-      for (uint256 j=0; j<stakerToNftTokenIds[staker].length; j++) {
-        uint256 tokenId = stakerToNftTokenIds[staker][j];
-        uint256 timeDiff = block.timestamp - nftStakedTimeByTokenId[tokenId];
-        uint256 levelUpCnt = timeDiff.div(LEVELUP_DEADLINE_BY_SECONDS);
-        for (uint256 k=0; k<levelUpCnt; k++) {
-          nftRewardPointByTokenId[tokenId].mul(100 + LEVELUP_PERCENT / 100);
-        }
-        uint256 rewardPerNftNFT = REWT_ISSUE_CNT_PER_SECOND.div(stakedNftNFTCnt);
-        nftTokenIdToStakerInfo[tokenId].reward += rewardPerNftNFT.mul(timeDiff);
-        nftStakedTimeByTokenId[tokenId] = block.timestamp;
-      }
+      uint256 timeDiff = block.timestamp - nftStakerInfo[staker].claimRewardTime;
+      nftStakerInfo[staker].rewardValue += timeDiff / 10; //increase reward point per 10 second
+      nftStakerInfo[staker].claimRewardTime = block.timestamp;      
     }
   }
 }
