@@ -88,7 +88,7 @@ contract NFTContract is ERC1155Supply, Ownable, ReentrancyGuard {
     function setSizeOfNFTbyId(uint16 id, uint8 count) external onlyOwner {
         require(id >= 0, "id is wrong");
         require(count > 0, "count is wrong");
-        TOTAL_TOKEN_COUNT = TOTAL_TOKEN_COUNT - this.getSizeofNFTbyId(id);
+        TOTAL_TOKEN_COUNT = TOTAL_TOKEN_COUNT - _sizeofNFTById(id);
         countPerNFT[id] = count;
          TOTAL_TOKEN_COUNT += count;
         //calculateTotalSupply();
@@ -100,10 +100,13 @@ contract NFTContract is ERC1155Supply, Ownable, ReentrancyGuard {
     //     }
     //     calculateTotalSupply();
     // }
-
     function getSizeofNFTbyId(uint256 id) view external onlyOwner returns(uint8){
         require(id < TOKEN_SIZE, "id is wrong. Exceed the maximum id");
         require(id >= 0, "id can't negetive");
+        return _sizeofNFTById(id);
+    }
+
+    function _sizeofNFTById(uint256 id) view private returns(uint8) {
         if(countPerNFT[id] == 0){
             //not set and returns default token count;
             return COUNT_PER_TOKEN;
