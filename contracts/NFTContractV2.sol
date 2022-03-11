@@ -115,6 +115,16 @@ contract NFTContract is ERC1155Supply, Ownable, ReentrancyGuard {
         }
     }
 
+    function getAvailableId() private returns(uint256){
+        uint256 expected = idPointer % TOKEN_SIZE; 
+        //if the one NFT count is exceed then find another id by increase
+        while(totalSupply(expected) >= _sizeofNFTById(expected)) { 
+            idPointer ++;
+            expected = idPointer % TOKEN_SIZE;
+        }
+        return expected;
+    }
+
     function preSale(uint256 mintCount, bytes32[] calldata merkleProof)
         external
         payable
@@ -126,20 +136,13 @@ contract NFTContract is ERC1155Supply, Ownable, ReentrancyGuard {
         for(uint i = 0; i < mintCount; i++) {
             uint256 id  = getAvailableId();
             _mint(msg.sender, id, 1, "");
+            idPointer ++;
             currentSupply = currentSupply + 1;
         }
         
     }
 
-    function getAvailableId() private returns(uint256){
-        uint256 expected = idPointer % TOKEN_SIZE; 
-        //if the one NFT count is exceed then find another id by increase
-        while(totalSupply(expected) >= _sizeofNFTById(expected)) { 
-            idPointer ++;
-            expected = idPointer % TOKEN_SIZE;
-        }
-        return expected;
-    }
+    
 
     function publicSale(uint256 mintCount)
         external
