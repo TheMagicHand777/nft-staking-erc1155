@@ -73,25 +73,25 @@ contract NFTContract is ERC1155Supply, Ownable, ReentrancyGuard {
         currentSupply = currentSupply + 2;
     }
 
-    function calculateTotalSupply() private {
-        uint256 totalSize;
-        for(uint16 i = 0; i < countPerNFT.length; i++) {
-            if(countPerNFT[i] == 0) {
-                totalSize += COUNT_PER_TOKEN;
-            }else {
-                totalSize +=countPerNFT[i];
-            }
-        }
+    // function calculateTotalSupply() private {
+    //     uint256 totalSize;
+    //     for(uint16 i = 0; i < countPerNFT.length; i++) {
+    //         if(countPerNFT[i] == 0) {
+    //             totalSize += COUNT_PER_TOKEN;
+    //         }else {
+    //             totalSize +=countPerNFT[i];
+    //         }
+    //     }
 
-        TOTAL_TOKEN_COUNT = totalSize;         
-    }
+    //     TOTAL_TOKEN_COUNT = totalSize;         
+    // }
     function setSizeOfNFTbyId(uint16 id, uint8 count) external onlyOwner {
         require(id >= 0, "id is wrong");
         require(count > 0, "count is wrong");
         TOTAL_TOKEN_COUNT = TOTAL_TOKEN_COUNT - _sizeofNFTById(id);
         countPerNFT[id] = count;
-         TOTAL_TOKEN_COUNT += count;
-        //calculateTotalSupply();
+        //updated the total token count
+        TOTAL_TOKEN_COUNT += count;
     }
 
     // function setSizeOfNFTBatch(uint16[] calldata nftIds, uint8[] calldata counts) external onlyOwner{
@@ -106,7 +106,7 @@ contract NFTContract is ERC1155Supply, Ownable, ReentrancyGuard {
         return _sizeofNFTById(id);
     }
 
-    function _sizeofNFTById(uint256 id) view private returns(uint8) {
+    function _sizeofNFTById(uint256 id) view public returns(uint8) {
         if(countPerNFT[id] == 0){
             //not set and returns default token count;
             return COUNT_PER_TOKEN;
@@ -133,7 +133,8 @@ contract NFTContract is ERC1155Supply, Ownable, ReentrancyGuard {
 
     function getAvailableId() private returns(uint256){
         uint256 expected = idPointer % TOKEN_SIZE; 
-        while(totalSupply(expected) > this.getSizeofNFTbyId(expected)) {
+        //if the one NFT count is exceed then find another id by increase
+        while(totalSupply(expected) >= _sizeofNFTById(expected)) { 
             idPointer ++;
             expected = idPointer % TOKEN_SIZE;
         }
@@ -150,6 +151,7 @@ contract NFTContract is ERC1155Supply, Ownable, ReentrancyGuard {
         for(uint i = 0; i < mintCount; i++) {
             uint256 id  = getAvailableId();
             _mint(msg.sender, id, 1, "");
+            idPointer ++;
             currentSupply = currentSupply + 1;        
         }
     }
