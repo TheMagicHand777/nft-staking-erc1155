@@ -134,10 +134,10 @@ contract NFTContract is ERC1155Supply, Ownable, ReentrancyGuard {
         require(mintCount <= PRESALE_COUNT, "Can mint up to 5 NFTs");
         require(currentSupply + mintCount <= TOTAL_TOKEN_COUNT, "Overflow Max Supply");      
         for(uint i = 0; i < mintCount; i++) {
-            uint256 id  = getAvailableId();
-            _mint(msg.sender, id, 1, "");
+            uint256 id  = getAvailableId();            
             idPointer ++;
             currentSupply = currentSupply + 1;
+            _mint(msg.sender, id, 1, "");
         }
         
     }
@@ -152,10 +152,10 @@ contract NFTContract is ERC1155Supply, Ownable, ReentrancyGuard {
         require(mintCount <= PUBLIC_SALE_COUNT, "Can mint up to 5 NFTs");
         require(currentSupply + mintCount <= TOTAL_TOKEN_COUNT, "Overflow Max Supply");
         for(uint i = 0; i < mintCount; i++) {
-            uint256 id  = getAvailableId();
-            _mint(msg.sender, id, 1, "");
+            uint256 id  = getAvailableId();            
             idPointer ++;
             currentSupply = currentSupply + 1;        
+            _mint(msg.sender, id, 1, "");
         }
     }
 
